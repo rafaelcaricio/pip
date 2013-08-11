@@ -28,11 +28,10 @@ class ShowCommand(Command):
             return
         query = args
 
-        results = self.search_packages_info(query)
+        results = self.search_packages_info(query, options.files)
         self.print_results(results, options.files)
 
-
-    def search_packages_info(self, query):
+    def search_packages_info(self, query, list_all_files):
         """
         Gather details from installed distributions. Print distribution name,
         version, location, and installed files. Installed files requires a
@@ -51,14 +50,18 @@ class ShowCommand(Command):
                     'location': dist.location,
                     'requires': [dep.project_name for dep in dist.requires()],
                 }
-                filelist = os.path.join(
-                           dist.location,
-                           dist.egg_name() + '.egg-info',
-                           'installed-files.txt')
-                if os.path.isfile(filelist):
-                    package['files'] = filelist
+                if list_all_files:
+                    filelist = os.path.join(
+                        dist.location,
+                        dist.egg_name() + '.egg-info',
+                        'installed-files.txt')
+                    if os.path.isfile(filelist):
+                        package['files'] = []
+                        for line in open(filelist):
+                            package['files'].append(line.strip())
+                    else:
+                        package['files'] = None
                 yield package
-
 
     def print_results(self, distributions, list_all_files):
         """
@@ -72,8 +75,8 @@ class ShowCommand(Command):
             logger.notify("Requires: %s" % ', '.join(dist['requires']))
             if list_all_files:
                 logger.notify("Files:")
-                if 'files' in dist:
-                    for line in open(dist['files']):
+                if dist['files']:
+                    for line in dist['files']:
                         logger.notify("  %s" % line.strip())
                 else:
                     logger.notify("Cannot locate installed-files.txt")
