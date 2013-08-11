@@ -1,6 +1,7 @@
 import re
 from pip import __version__
-from pip.commands.show import search_packages_info
+from pip.commands.show import ShowCommand
+from pip.baseparser import create_main_parser
 from tests.lib import reset_env, run_pip
 
 
@@ -60,12 +61,16 @@ def test_missing_argument():
     assert 'ERROR: Please provide a package name or names.' in result.stdout
 
 
+def show_cmd():
+    return ShowCommand(create_main_parser())
+
+
 def test_find_package_not_found():
     """
     Test trying to get info about a nonexistent package.
 
     """
-    result = search_packages_info(['abcd3'])
+    result = show_cmd().search_packages_info(['abcd3'])
     assert len(list(result)) == 0
 
 
@@ -74,7 +79,7 @@ def test_search_any_case():
     Search for a package in any case.
 
     """
-    result = list(search_packages_info(['PIP']))
+    result = list(show_cmd().search_packages_info(['PIP']))
     assert len(result) == 1
     assert 'pip' == result[0]['name']
 
@@ -84,5 +89,5 @@ def test_more_than_one_package():
     Search for more than one package.
 
     """
-    result = list(search_packages_info(['Pip', 'Nose', 'Virtualenv']))
+    result = list(show_cmd().search_packages_info(['Pip', 'Nose', 'Virtualenv']))
     assert len(result) == 3

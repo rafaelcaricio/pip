@@ -28,52 +28,52 @@ class ShowCommand(Command):
             return
         query = args
 
-        results = search_packages_info(query)
-        print_results(results, options.files)
+        results = self.search_packages_info(query)
+        self.print_results(results, options.files)
 
 
-def search_packages_info(query):
-    """
-    Gather details from installed distributions. Print distribution name,
-    version, location, and installed files. Installed files requires a
-    pip generated 'installed-files.txt' in the distributions '.egg-info'
-    directory.
-    """
-    installed_packages = dict(
-        [(p.project_name.lower(), p) for p in pkg_resources.working_set])
-    for name in query:
-        normalized_name = name.lower()
-        if normalized_name in installed_packages:
-            dist = installed_packages[normalized_name]
-            package = {
-                'name': dist.project_name,
-                'version': dist.version,
-                'location': dist.location,
-                'requires': [dep.project_name for dep in dist.requires()],
-            }
-            filelist = os.path.join(
-                       dist.location,
-                       dist.egg_name() + '.egg-info',
-                       'installed-files.txt')
-            if os.path.isfile(filelist):
-                package['files'] = filelist
-            yield package
+    def search_packages_info(self, query):
+        """
+        Gather details from installed distributions. Print distribution name,
+        version, location, and installed files. Installed files requires a
+        pip generated 'installed-files.txt' in the distributions '.egg-info'
+        directory.
+        """
+        installed_packages = dict(
+            [(p.project_name.lower(), p) for p in pkg_resources.working_set])
+        for name in query:
+            normalized_name = name.lower()
+            if normalized_name in installed_packages:
+                dist = installed_packages[normalized_name]
+                package = {
+                    'name': dist.project_name,
+                    'version': dist.version,
+                    'location': dist.location,
+                    'requires': [dep.project_name for dep in dist.requires()],
+                }
+                filelist = os.path.join(
+                           dist.location,
+                           dist.egg_name() + '.egg-info',
+                           'installed-files.txt')
+                if os.path.isfile(filelist):
+                    package['files'] = filelist
+                yield package
 
 
-def print_results(distributions, list_all_files):
-    """
-    Print the informations from installed distributions found.
-    """
-    for dist in distributions:
-        logger.notify("---")
-        logger.notify("Name: %s" % dist['name'])
-        logger.notify("Version: %s" % dist['version'])
-        logger.notify("Location: %s" % dist['location'])
-        logger.notify("Requires: %s" % ', '.join(dist['requires']))
-        if list_all_files:
-            logger.notify("Files:")
-            if 'files' in dist:
-                for line in open(dist['files']):
-                    logger.notify("  %s" % line.strip())
-            else:
-                logger.notify("Cannot locate installed-files.txt")
+    def print_results(self, distributions, list_all_files):
+        """
+        Print the informations from installed distributions found.
+        """
+        for dist in distributions:
+            logger.notify("---")
+            logger.notify("Name: %s" % dist['name'])
+            logger.notify("Version: %s" % dist['version'])
+            logger.notify("Location: %s" % dist['location'])
+            logger.notify("Requires: %s" % ', '.join(dist['requires']))
+            if list_all_files:
+                logger.notify("Files:")
+                if 'files' in dist:
+                    for line in open(dist['files']):
+                        logger.notify("  %s" % line.strip())
+                else:
+                    logger.notify("Cannot locate installed-files.txt")
