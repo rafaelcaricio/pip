@@ -1,3 +1,5 @@
+from pip.log import logger
+
 class ConsoleOutput:
     delegation_marker = 'notify_'
 
@@ -5,11 +7,12 @@ class ConsoleOutput:
         self.formatter = None
         self.output_formatters = output_formatters
 
+        formats_available = self.formats_available()
         cmd_opts.add_option('--output',
             action='store',
-            default='text',
-            choices=self.formats_available(),
-            help='Output type to render: ' + ', '.join(self.formats_available()) + '.')
+            default=formats_available[0],
+            choices=formats_available,
+            help='Output type to render: ' + ', '.join(formats_available) + '.')
 
     def formats_available(self):
         return [formatter.format_type for formatter in self.output_formatters]
@@ -23,3 +26,11 @@ class ConsoleOutput:
         if attr_name.startswith(self.delegation_marker):
             method_name = attr_name.replace(self.delegation_marker, '')
             return getattr(self.formatter, method_name)
+
+
+class CommandOutput:
+    def output(self, text):
+        logger.notify(text)
+
+    def output_end(self):
+        pass

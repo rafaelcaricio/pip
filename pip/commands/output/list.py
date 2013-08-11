@@ -1,11 +1,8 @@
 import json
-from pip.log import logger
+from pip.commands.output import CommandOutput
 
 
-class ListCommand:
-    def output(self, text):
-        logger.notify(text)
-
+class ListCommandOutput(CommandOutput):
     def outdated_item(self, **keys):
         raise NotImplementedError
 
@@ -22,11 +19,8 @@ class ListCommand:
     def package_list_with_location(self, project_name, version, location):
         raise NotImplementedError
 
-    def output_end(self):
-        pass
 
-
-class TextFormat(ListCommand):
+class TextFormat(ListCommandOutput):
     format_type = 'text'
 
     def outdated_item(self, project_name, current_version, latest_version):
@@ -40,7 +34,7 @@ class TextFormat(ListCommand):
         self.output('%s (%s)' % (project_name, version))
 
 
-class JsonFormat(ListCommand):
+class JsonFormat(ListCommandOutput):
     format_type = 'json'
 
     def __init__(self):
@@ -67,7 +61,7 @@ class JsonFormat(ListCommand):
         self.output(json.dumps(self.items, sort_keys=True))
 
 
-class CsvFormat(ListCommand):
+class CsvFormat(ListCommandOutput):
     format_type = 'csv'
 
     def __init__(self):

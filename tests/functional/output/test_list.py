@@ -1,4 +1,3 @@
-import json
 from mock import MagicMock
 
 from pip.commands.output.list import TextFormat, JsonFormat, CsvFormat

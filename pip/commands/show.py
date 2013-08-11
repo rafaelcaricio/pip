@@ -2,6 +2,8 @@ import os
 import pkg_resources
 from pip.basecommand import Command
 from pip.log import logger
+from pip.commands.output import ConsoleOutput
+from pip.commands.output.show import TextFormat
 
 
 class ShowCommand(Command):
@@ -20,16 +22,20 @@ class ShowCommand(Command):
             default=False,
             help='Show the full list of installed files for each package.')
 
+        self.console = ConsoleOutput(self.cmd_opts, output_formatters=[TextFormat()])
+
         self.parser.insert_option_group(0, self.cmd_opts)
 
     def run(self, options, args):
+        self.console.set_output_type_based_on(options)
         if not args:
             logger.warn('ERROR: Please provide a package name or names.')
             return
         query = args
 
         results = self.search_packages_info(query, options.files)
-        self.print_results(results, options.files)
+        self.console.notify_packages_infos(results, options.files)
+        self.console.notify_output_end()
 
     def search_packages_info(self, query, list_all_files):
         """
@@ -62,21 +68,3 @@ class ShowCommand(Command):
                     else:
                         package['files'] = None
                 yield package
-
-    def print_results(self, distributions, list_all_files):
-        """
-        Print the informations from installed distributions found.
-        """
-        for dist in distributions:
-            logger.notify("---")
-            logger.notify("Name: %s" % dist['name'])
-            logger.notify("Version: %s" % dist['version'])
-            logger.notify("Location: %s" % dist['location'])
-            logger.notify("Requires: %s" % ', '.join(dist['requires']))
-            if list_all_files:
-                logger.notify("Files:")
-                if dist['files']:
-                    for line in dist['files']:
-                        logger.notify("  %s" % line.strip())
-                else:
-                    logger.notify("Cannot locate installed-files.txt")
