@@ -1,8 +1,4 @@
-try:
-  from StringIO import StringIO
-except:
-  from io import StringIO
-
+from pip.backwardcompat import StringIO
 from pip.commands.output.show import TextFormat
 
 
